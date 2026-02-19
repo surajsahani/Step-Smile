@@ -41,17 +41,28 @@ const SOLUTIONS: Record<string, {
         hindi: '5. गणना: 2 × 3 = 6 पेज। 6 >= 6? हाँ! ✓'
       }
     ],
-    fullCode: `# Read input
-n, m, a = map(int, input().split())
+    fullCode: `// Read input
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-# Calculate total pages we can collect
-total_pages = a * n
-
-# Check if we have enough
-if total_pages >= m:
-    print("YES")
-else:
-    print("NO")`
+rl.on('line', (line) => {
+  const [n, m, a] = line.split(' ').map(Number);
+  
+  // Calculate total pages we can collect
+  const totalPages = a * n;
+  
+  // Check if we have enough
+  if (totalPages >= m) {
+    console.log("YES");
+  } else {
+    console.log("NO");
+  }
+  
+  rl.close();
+});`
   },
   
   snail: {
@@ -81,18 +92,29 @@ else:
         hindi: '5. उदाहरण: N=10m, A=3m, B=2m → शुद्ध=1m/दिन → 8 दिन'
       }
     ],
-    fullCode: `# Read input
-n, a, b = map(int, input().split())
+    fullCode: `// Read input
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-# Special cases
-if n <= a:
-    print(1)  # Reaches top on first day
-elif a <= b:
-    print(-1)  # Never escapes
-else:
-    # Calculate days needed
-    days = ((n - a) // (a - b)) + 1
-    print(days)`
+rl.on('line', (line) => {
+  const [n, a, b] = line.split(' ').map(Number);
+  
+  // Special cases
+  if (n <= a) {
+    console.log(1);  // Reaches top on first day
+  } else if (a <= b) {
+    console.log(-1);  // Never escapes
+  } else {
+    // Calculate days needed
+    const days = Math.floor((n - a) / (a - b)) + 1;
+    console.log(days);
+  }
+  
+  rl.close();
+});`
   },
   
   icecream: {
@@ -122,16 +144,25 @@ else:
         hindi: '5. उदाहरण: X=5g, Y=1g/min, N=2min → 5 - (1×2) = 3g बचा'
       }
     ],
-    fullCode: `# Read input
-x, y, n = map(int, input().split())
+    fullCode: `// Read input
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-# Calculate melted amount
-melted = y * n
-
-# Calculate remaining (can't be negative)
-remaining = max(0, x - melted)
-
-print(remaining)`
+rl.on('line', (line) => {
+  const [x, y, n] = line.split(' ').map(Number);
+  
+  // Calculate melted amount
+  const melted = y * n;
+  
+  // Calculate remaining (can't be negative)
+  const remaining = Math.max(0, x - melted);
+  
+  console.log(remaining);
+  rl.close();
+});`
   }
 };
 
@@ -176,9 +207,23 @@ export default function SolutionWalkthrough({ problemId, language, onComplete }:
               {language === 'hindi' ? '💡 समाधान सीखें!' : '💡 Learn Solution!'}
             </h2>
           </div>
-          <p className="text-sm opacity-90">
+          <p className="text-sm opacity-90 mb-3">
             {language === 'hindi' ? solution.title.hindi : solution.title.english}
           </p>
+          
+          {/* Contest Info Banner */}
+          <div className="bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
+            <p className="text-xs font-bold mb-1">
+              {language === 'hindi' 
+                ? '🏆 CodeChef Contest 226D से लिया गया'
+                : '🏆 From CodeChef Contest 226D'}
+            </p>
+            <p className="text-xs opacity-90">
+              {language === 'hindi'
+                ? '✨ हर हफ्ते नए contest problems जोड़े जाएंगे!'
+                : '✨ New contest problems added every week!'}
+            </p>
+          </div>
         </div>
 
         {/* Content */}
