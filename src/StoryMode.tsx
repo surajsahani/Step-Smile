@@ -746,6 +746,14 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   {checkingAnswer ? '🤔 Checking...' : language === 'hindi' ? 'जवाब दें' : 'Answer!'}
                 </button>
 
+                {/* Skip button */}
+                <button
+                  onClick={() => setShowFinalCheck(false)}
+                  className="w-full py-3 bg-gray-100 text-gray-600 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all border-2 border-gray-200"
+                >
+                  {language === 'hindi' ? '⏭️ बाद में जवाब दूंगा' : '⏭️ I\'ll Answer Later'}
+                </button>
+
                 {/* Progress indicator */}
                 <div className="flex justify-center gap-2">
                   {[0, 1, 2].map((i) => (
