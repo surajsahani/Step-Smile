@@ -287,8 +287,18 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [storyMode, setStoryMode] = useState(false);
+  const [showModeSwitch, setShowModeSwitch] = useState(false);
   
   const mainControls = useAnimation();
+
+  // Celebration effect when switching to story mode
+  const handleStoryModeToggle = () => {
+    setStoryMode(!storyMode);
+    if (!storyMode) {
+      setShowModeSwitch(true);
+      setTimeout(() => setShowModeSwitch(false), 2000);
+    }
+  };
   const simulationRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentProblemDef = useMemo(() => 
@@ -516,6 +526,35 @@ export default function App() {
   return (
     <div className={`min-h-screen ${currentProblemDef.theme.bg} ${currentProblemDef.theme.text} font-sans selection:bg-yellow-200 overflow-hidden relative transition-colors duration-700`}>
       
+      {/* Mode Switch Celebration */}
+      <AnimatePresence>
+        {showModeSwitch && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -50 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full shadow-2xl border-4 border-white"
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 0.5 }}
+              >
+                📖
+              </motion.div>
+              <span className="font-black text-lg">Story Mode Activated!</span>
+              <motion.div
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 0.5, repeat: 2 }}
+              >
+                ✨
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background Decorations */}
       <AnimatePresence mode="wait">
         {activeProblem === 'snail' && (
@@ -607,21 +646,65 @@ export default function App() {
         
         {/* Header */}
         <header className="mb-10 text-center relative">
-          <div className="absolute top-0 right-0 flex gap-2">
-            <button 
-              onClick={() => setStoryMode(!storyMode)}
-              className={`p-4 rounded-full border-4 border-white shadow-sm transition-colors ${
-                storyMode ? 'bg-purple-500 text-white' : 'bg-white/50 hover:bg-white'
+          <div className="absolute top-0 right-0 flex gap-3">
+            <motion.button 
+              onClick={handleStoryModeToggle}
+              whileHover={{ scale: 1.1, rotate: storyMode ? 0 : 5 }}
+              whileTap={{ scale: 0.9 }}
+              animate={{ 
+                scale: storyMode ? [1, 1.1, 1] : 1,
+                rotate: storyMode ? [0, -5, 5, 0] : 0
+              }}
+              transition={{ 
+                duration: 0.3,
+                type: "spring",
+                stiffness: 300,
+                damping: 15
+              }}
+              className={`relative p-4 rounded-full border-4 shadow-lg transition-all duration-300 ${
+                storyMode 
+                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-purple-300 shadow-purple-300' 
+                  : 'bg-white/80 border-white hover:bg-white hover:shadow-xl'
               }`}
             >
-              <MessageCircle className={`w-6 h-6 ${storyMode ? 'text-white' : currentProblemDef.theme.text}`} />
-            </button>
-            <button 
+              <MessageCircle className={`w-6 h-6 transition-colors ${storyMode ? 'text-white' : currentProblemDef.theme.text}`} />
+              
+              {/* Playful indicator */}
+              {storyMode && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    className="w-full h-full bg-green-400 rounded-full"
+                  />
+                </motion.div>
+              )}
+              
+              {/* Tooltip */}
+              {!storyMode && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg pointer-events-none"
+                >
+                  Story Mode! 📖
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rotate-45" />
+                </motion.div>
+              )}
+            </motion.button>
+            
+            <motion.button 
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-4 rounded-full bg-white/50 border-4 border-white shadow-sm hover:bg-white transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-4 rounded-full bg-white/80 border-4 border-white shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300"
             >
               {soundEnabled ? <Volume2 className={`w-6 h-6 ${currentProblemDef.theme.text}`} /> : <VolumeX className="w-6 h-6 text-zinc-400" />}
-            </button>
+            </motion.button>
           </div>
 
           <motion.div 
@@ -677,12 +760,27 @@ export default function App() {
           
           {/* Left Column: The Game World */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {storyMode ? (
-              <section className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 min-h-[650px]`}>
-                <StoryMode problemId={activeProblem} soundEnabled={soundEnabled} />
-              </section>
-            ) : (
-            <section className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 flex flex-col gap-10 min-h-[650px]`}>
+            <AnimatePresence mode="wait">
+              {storyMode ? (
+                <motion.section 
+                  key="story-mode"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ duration: 0.4, type: "spring", stiffness: 200, damping: 20 }}
+                  className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 min-h-[650px]`}
+                >
+                  <StoryMode problemId={activeProblem} soundEnabled={soundEnabled} />
+                </motion.section>
+              ) : (
+                <motion.section 
+                  key="game-mode"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ duration: 0.4, type: "spring", stiffness: 200, damping: 20 }}
+                  className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 flex flex-col gap-10 min-h-[650px]`}
+                >
               
               {/* Pedagogy Header: Given & Find */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1119,8 +1217,9 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </section>
-            )}
+          </motion.section>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Right Column: Settings & Big Result */}
