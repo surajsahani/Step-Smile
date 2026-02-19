@@ -644,85 +644,100 @@ export default function App() {
 
       <div className="max-w-6xl mx-auto px-6 py-10 relative z-10">
         
+        {/* Floating Story Mode Button - Always Visible! */}
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.5 }}
+          className="fixed bottom-8 right-8 z-[60]"
+        >
+          <motion.button 
+            onClick={handleStoryModeToggle}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
+            animate={{ 
+              y: [0, -10, 0],
+              boxShadow: storyMode 
+                ? ['0 20px 40px rgba(168, 85, 247, 0.5)', '0 25px 50px rgba(236, 72, 153, 0.6)', '0 20px 40px rgba(168, 85, 247, 0.5)']
+                : ['0 15px 30px rgba(147, 51, 234, 0.3)', '0 20px 40px rgba(147, 51, 234, 0.4)', '0 15px 30px rgba(147, 51, 234, 0.3)']
+            }}
+            transition={{ 
+              y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              boxShadow: { duration: 2, repeat: Infinity }
+            }}
+            className={`relative px-6 py-5 rounded-full border-4 shadow-2xl transition-all duration-300 flex items-center gap-3 ${
+              storyMode 
+                ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 border-purple-300' 
+                : 'bg-gradient-to-r from-purple-600 to-pink-600 border-purple-400'
+            }`}
+          >
+            {/* Icon with animation */}
+            <motion.div
+              animate={{ 
+                rotate: [0, -15, 15, -15, 0],
+                scale: [1, 1.2, 1]
+              }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            >
+              <MessageCircle className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={2.5} />
+            </motion.div>
+            
+            {/* Text - Hidden on small screens */}
+            <div className="hidden md:block text-left">
+              <div className="text-lg font-black text-white drop-shadow-md">
+                {storyMode ? 'Story ON' : 'Story Mode'}
+              </div>
+              <div className="text-xs font-bold text-white/90">
+                {storyMode ? 'Tap to exit' : 'Tap to start!'}
+              </div>
+            </div>
+            
+            {/* Sparkle effect */}
+            {!storyMode && (
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  rotate: [0, 180, 360]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -top-2 -right-2 text-3xl drop-shadow-lg"
+              >
+                ✨
+              </motion.div>
+            )}
+            
+            {/* Active indicator */}
+            {storyMode && (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="absolute -top-2 -right-2 w-8 h-8 bg-green-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center"
+              >
+                <span className="text-lg font-black text-white">✓</span>
+              </motion.div>
+            )}
+
+            {/* Pulsing ring effect */}
+            <motion.div
+              animate={{ 
+                scale: [1, 1.5, 1],
+                opacity: [0.5, 0, 0.5]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className={`absolute inset-0 rounded-full border-4 ${storyMode ? 'border-purple-300' : 'border-pink-400'}`}
+            />
+          </motion.button>
+        </motion.div>
+
         {/* Header */}
         <header className="mb-10 text-center relative">
           
-          {/* Big Prominent Story Mode Button */}
+          {/* Sound button - top right */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-4 mb-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute top-0 right-0"
           >
-            <motion.button 
-              onClick={handleStoryModeToggle}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{ 
-                boxShadow: storyMode 
-                  ? ['0 10px 30px rgba(168, 85, 247, 0.4)', '0 15px 40px rgba(236, 72, 153, 0.5)', '0 10px 30px rgba(168, 85, 247, 0.4)']
-                  : '0 10px 25px rgba(0, 0, 0, 0.1)'
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                type: "spring",
-                stiffness: 200,
-                damping: 15
-              }}
-              className={`relative px-8 py-4 rounded-3xl border-4 shadow-2xl transition-all duration-300 flex items-center gap-4 ${
-                storyMode 
-                  ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 border-purple-300 bg-[length:200%_100%] animate-[gradient_3s_ease_infinite]' 
-                  : 'bg-gradient-to-r from-white to-purple-50 border-purple-200 hover:border-purple-400'
-              }`}
-            >
-              {/* Icon with animation */}
-              <motion.div
-                animate={{ 
-                  rotate: storyMode ? [0, -10, 10, -10, 0] : 0,
-                  scale: storyMode ? [1, 1.1, 1] : 1
-                }}
-                transition={{ duration: 0.5, repeat: storyMode ? Infinity : 0, repeatDelay: 2 }}
-              >
-                <MessageCircle className={`w-8 h-8 transition-colors ${storyMode ? 'text-white' : 'text-purple-600'}`} />
-              </motion.div>
-              
-              {/* Text */}
-              <div className="text-left">
-                <div className={`text-xl font-black ${storyMode ? 'text-white' : 'text-purple-900'}`}>
-                  {storyMode ? '📖 Story Mode ON' : '🎮 Try Story Mode!'}
-                </div>
-                <div className={`text-xs font-bold ${storyMode ? 'text-purple-100' : 'text-purple-600'}`}>
-                  {storyMode ? 'Click to switch back' : 'Learn with conversations'}
-                </div>
-              </div>
-              
-              {/* Sparkle effect */}
-              {!storyMode && (
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-2xl"
-                >
-                  ✨
-                </motion.div>
-              )}
-              
-              {/* Active indicator */}
-              {storyMode && (
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center"
-                >
-                  <span className="text-xs">✓</span>
-                </motion.div>
-              )}
-            </motion.button>
-
-            {/* Sound button - smaller but still visible */}
             <motion.button 
               onClick={() => setSoundEnabled(!soundEnabled)}
               whileHover={{ scale: 1.1 }}
