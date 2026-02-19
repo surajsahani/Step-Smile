@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, BookOpen } from 'lucide-react';
 import { AITeacher } from './aiTeacher';
 import SolutionWalkthrough from './SolutionWalkthrough';
 
@@ -565,7 +565,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-3 md:gap-4 relative z-10 shrink-0">
+      <div className="flex items-center justify-center gap-3 md:gap-4 relative z-10 shrink-0 flex-wrap">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -592,6 +592,16 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
           className="p-3 md:p-4 rounded-full bg-white border-4 border-gray-200 text-gray-600 shadow-lg"
         >
           <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowSolution(true)}
+          className="flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-sm md:text-base bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-xl border-b-4 border-blue-700"
+        >
+          <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+          {language === 'hindi' ? 'समाधान देखें' : 'Show Solution'}
         </motion.button>
       </div>
 
