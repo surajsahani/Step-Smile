@@ -13,6 +13,11 @@ interface DialogueLine {
   character: 'teacher' | 'student';
   text: string;
   emotion?: 'happy' | 'thinking' | 'excited' | 'confused';
+  quiz?: {
+    question: string;
+    answer: string;
+    hint?: string;
+  };
 }
 
 interface StoryScript {
@@ -38,7 +43,8 @@ const STORIES: Record<string, StoryScript> = {
       { character: 'student', text: "But how do I know if I have enough time?", emotion: 'confused' },
       { character: 'teacher', text: "Well, how many pages can you collect per hour?", emotion: 'thinking' },
       { character: 'student', text: "I can collect 2 pages every hour!", emotion: 'happy' },
-      { character: 'teacher', text: "Perfect! This is called 'Repeated Addition'. We're grouping pages by hour.", emotion: 'excited' },
+      { character: 'teacher', text: "Perfect! This is called 'Repeated Addition'. We're grouping pages by hour.", emotion: 'excited', 
+        quiz: { question: "What is 2 pages × 3 hours?", answer: "6", hint: "Multiply pages per hour by number of hours" } },
       { character: 'student', text: "So... 2 pages times 3 hours?", emotion: 'thinking' },
       { character: 'teacher', text: "Exactly! 2 × 3 = 6 pages. You'll have exactly what you need!", emotion: 'excited' },
       { character: 'student', text: "Wow! Math saved my exam! Thanks Professor!", emotion: 'excited' },
@@ -72,7 +78,8 @@ const STORIES: Record<string, StoryScript> = {
       { character: 'student', text: "I can climb up 3 meters during the day!", emotion: 'happy' },
       { character: 'teacher', text: "That's good! But what happens at night?", emotion: 'thinking' },
       { character: 'student', text: "Oh no... I slide back down 2 meters while I sleep.", emotion: 'confused' },
-      { character: 'teacher', text: "Interesting! So your 'Net Progress' each day is 3 minus 2, which equals 1 meter.", emotion: 'excited' },
+      { character: 'teacher', text: "Interesting! So your 'Net Progress' each day is 3 minus 2, which equals 1 meter.", emotion: 'excited',
+        quiz: { question: "What is 3 - 2?", answer: "1", hint: "Subtract the slide distance from climb distance" } },
       { character: 'student', text: "So I only make 1 meter of real progress per day?", emotion: 'thinking' },
       { character: 'teacher', text: "Exactly! But here's the trick: on the last day, you reach the top and don't slide back!", emotion: 'excited' },
       { character: 'student', text: "Ohhh! So I need to think about when I'll reach the top during the day!", emotion: 'excited' },
@@ -108,7 +115,8 @@ const STORIES: Record<string, StoryScript> = {
       { character: 'student', text: "About 1 gram per minute...", emotion: 'confused' },
       { character: 'teacher', text: "This is 'Repeated Subtraction'! Every minute, we take away 1 gram.", emotion: 'excited' },
       { character: 'student', text: "So after 2 minutes, I'll have... 5 minus 2?", emotion: 'thinking' },
-      { character: 'teacher', text: "Close! It's 5 minus (1 × 2). That's 5 - 2 = 3 grams left!", emotion: 'excited' },
+      { character: 'teacher', text: "Close! It's 5 minus (1 × 2). That's 5 - 2 = 3 grams left!", emotion: 'excited',
+        quiz: { question: "What is 5 - 2?", answer: "3", hint: "Start amount minus melted amount" } },
       { character: 'student', text: "I better eat it fast before it all melts!", emotion: 'excited' },
       { character: 'teacher', text: "Good idea! The formula is: Start - (Melt Rate × Minutes) = Leftover", emotion: 'happy' }
     ],
@@ -140,6 +148,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showText, setShowText] = useState(false);
   const [language, setLanguage] = useState<'english' | 'hindi'>('english');
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -201,13 +212,41 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       await speak(textToShow, line.character);
     }
 
-    // Wait before next line - longer delay to prevent overlap
-    timeoutRef.current = setTimeout(() => {
-      setShowText(false); // Hide current bubble before showing next
+    // Check if this line has a quiz
+    if (line.quiz) {
+      // Show quiz after a short delay
+      timeoutRef.current = setTimeout(() => {
+        setShowText(false);
+        setShowQuiz(true);
+        setIsPlaying(false); // Pause for quiz
+      }, soundEnabled ? 800 : 2000);
+    } else {
+      // Wait before next line - longer delay to prevent overlap
+      timeoutRef.current = setTimeout(() => {
+        setShowText(false); // Hide current bubble before showing next
+        setTimeout(() => {
+          setCurrentLine(prev => prev + 1);
+        }, 300); // Small delay between bubbles
+      }, soundEnabled ? 800 : 2800);
+    }
+  };
+
+  const handleQuizSubmit = () => {
+    const currentQuiz = story.dialogue[currentLine].quiz;
+    if (!currentQuiz) return;
+
+    const isCorrect = userAnswer.trim().toLowerCase() === currentQuiz.answer.toLowerCase();
+    setQuizResult(isCorrect ? 'correct' : 'incorrect');
+
+    if (isCorrect) {
       setTimeout(() => {
+        setShowQuiz(false);
+        setQuizResult(null);
+        setUserAnswer('');
         setCurrentLine(prev => prev + 1);
-      }, 300); // Small delay between bubbles
-    }, soundEnabled ? 800 : 2800);
+        setIsPlaying(true); // Resume playing
+      }, 1500);
+    }
   };
 
   useEffect(() => {
@@ -236,6 +275,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
     setIsPlaying(false);
     setCurrentLine(0);
     setShowText(false);
+    setShowQuiz(false);
+    setUserAnswer('');
+    setQuizResult(null);
     window.speechSynthesis?.cancel();
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
@@ -463,6 +505,87 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
           <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
         </motion.button>
       </div>
+
+      {/* Quiz Modal */}
+      <AnimatePresence>
+        {showQuiz && story.dialogue[currentLine]?.quiz && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              className="bg-white rounded-3xl p-8 shadow-2xl border-8 border-purple-400 max-w-md w-full"
+            >
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">🤔</div>
+                <h3 className="text-2xl font-black text-purple-900 mb-2">
+                  {language === 'hindi' ? 'क्विज़ टाइम!' : 'Quiz Time!'}
+                </h3>
+                <p className="text-lg font-bold text-gray-700">
+                  {story.dialogue[currentLine].quiz!.question}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleQuizSubmit()}
+                  placeholder={language === 'hindi' ? 'अपना उत्तर यहाँ टाइप करें...' : 'Type your answer here...'}
+                  className="w-full px-6 py-4 rounded-2xl border-4 border-purple-200 text-lg font-bold text-center focus:outline-none focus:border-purple-500 transition-colors"
+                  autoFocus
+                />
+
+                {story.dialogue[currentLine].quiz!.hint && (
+                  <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                    <p className="text-sm font-bold text-blue-800">
+                      💡 {language === 'hindi' ? 'संकेत: ' : 'Hint: '}
+                      {story.dialogue[currentLine].quiz!.hint}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleQuizSubmit}
+                  className="w-full py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl font-black text-lg shadow-lg hover:from-purple-600 hover:to-purple-700 transition-all border-b-4 border-purple-700"
+                >
+                  {language === 'hindi' ? 'जमा करें' : 'Submit'}
+                </button>
+              </div>
+
+              {quizResult && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className={`mt-6 p-4 rounded-2xl text-center font-black text-lg ${
+                    quizResult === 'correct'
+                      ? 'bg-green-100 text-green-800 border-4 border-green-300'
+                      : 'bg-red-100 text-red-800 border-4 border-red-300'
+                  }`}
+                >
+                  {quizResult === 'correct' ? (
+                    <>
+                      <div className="text-4xl mb-2">🎉</div>
+                      {language === 'hindi' ? 'बिल्कुल सही!' : 'Correct!'}
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-4xl mb-2">💪</div>
+                      {language === 'hindi' ? 'फिर से कोशिश करें!' : 'Try again!'}
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Completion message */}
       <AnimatePresence>
