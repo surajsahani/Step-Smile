@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { AITeacher } from './aiTeacher';
+import SolutionWalkthrough from './SolutionWalkthrough';
 
 interface Character {
   name: string;
@@ -153,6 +154,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const [userAnswer, setUserAnswer] = useState('');
   const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
   const [showFinalCheck, setShowFinalCheck] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const [teacherQuestion, setTeacherQuestion] = useState('');
   const [studentResponse, setStudentResponse] = useState('');
   const [checkingAnswer, setCheckingAnswer] = useState(false);
@@ -287,9 +289,10 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       }
       
       if (aiTeacherRef.current.isComplete() && evaluation.isGood) {
-        // Student passed all checks!
+        // Student passed all checks! Now show solution walkthrough
         setTimeout(() => {
           setShowFinalCheck(false);
+          setShowSolution(true);
         }, 3000);
       } else if (evaluation.shouldContinue && evaluation.isGood) {
         // Ask next question
@@ -802,6 +805,17 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
               </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Solution Walkthrough */}
+      <AnimatePresence>
+        {showSolution && (
+          <SolutionWalkthrough
+            problemId={problemId}
+            language={language}
+            onComplete={() => setShowSolution(false)}
+          />
         )}
       </AnimatePresence>
     </div>
