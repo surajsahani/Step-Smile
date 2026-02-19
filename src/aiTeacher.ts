@@ -44,24 +44,36 @@ export class AITeacher {
 
     // System prompt to set the teacher's personality
     this.conversationHistory.push(
-      new SystemMessage(`You are a friendly, patient teacher helping a 5-10 year old child understand: ${concept}.
+      new SystemMessage(`You are a friendly, patient teacher helping an 8-12 year old child DEEPLY understand: ${concept}.
 
 The formula is: ${formula}
 
 Your role:
-- Ask simple, clear questions to check understanding
-- Give encouraging feedback
-- If the answer is weak, ask them to explain more
-- If the answer is good, praise them and ask a follow-up question
-- After 3 good answers, congratulate them warmly
+- Check if they understand WHY the formula works, not just WHAT it is
+- Ask questions that reveal their thinking process
+- If they just repeat the formula, ask them to explain it differently
+- If they give a shallow answer, dig deeper with "Why?" or "How?"
+- After 3 answers that show TRUE understanding, congratulate them
 - Keep responses SHORT (1-2 sentences max)
-- Use simple words a child can understand
+- Use simple but precise language
 - Be enthusiastic and supportive!
 
-Question types to ask:
-1. Explain the formula in your own words
-2. When would you use this?
-3. What happens if we change the numbers?`)
+Question progression (ask in this order):
+1. "Can you explain the formula in your own words?" (tests basic recall)
+2. "WHY does this formula work? What's the logic behind it?" (tests understanding)
+3. "If I change [a number], what happens and WHY?" (tests application)
+
+Red flags (means they DON'T understand yet):
+- Just repeating the formula word-for-word
+- Saying "I don't know" or very short answers
+- Can't explain WHY, only WHAT
+- Can't apply it to a different example
+
+Green flags (means they DO understand):
+- Explains in their own words
+- Can say WHY it works
+- Can predict what happens if numbers change
+- Uses examples to explain`)
     );
   }
 
@@ -70,16 +82,21 @@ Question types to ask:
       // Fallback questions if no API key
       const fallbackQuestions = [
         "Can you explain the formula to me in your own words?",
-        "Great! Now, when would we use this formula?",
-        "Excellent! What happens if we change the numbers?"
+        "Great! Now tell me WHY this formula works. What's the logic?",
+        "Perfect! If I change one of the numbers, what happens and why?"
       ];
       return fallbackQuestions[Math.min(this.state.questionsAsked, 2)];
     }
 
     try {
-      const prompt = this.state.questionsAsked === 0
-        ? "Ask the student to explain the formula in their own words. Keep it simple and friendly!"
-        : "Based on their previous answer, ask a follow-up question to check deeper understanding.";
+      let prompt = '';
+      if (this.state.questionsAsked === 0) {
+        prompt = "Ask the student to explain the formula in their own words. Keep it simple and friendly!";
+      } else if (this.state.questionsAsked === 1) {
+        prompt = "Now ask them WHY the formula works. What's the logic behind it? Push them to think deeper!";
+      } else {
+        prompt = "Ask them to apply it: What happens if we change a number? Make them predict and explain!";
+      }
 
       this.conversationHistory.push(new HumanMessage(prompt));
 
@@ -104,19 +121,21 @@ Question types to ask:
     this.state.studentAnswers.push(studentAnswer);
 
     if (!this.model) {
-      // Simple fallback evaluation
+      // Simple fallback evaluation - check for depth
+      const hasExplanation = studentAnswer.length > 30;
       const hasKeywords = studentAnswer.toLowerCase().includes('multiply') ||
                          studentAnswer.toLowerCase().includes('×') ||
                          studentAnswer.toLowerCase().includes('add') ||
-                         studentAnswer.toLowerCase().includes('subtract');
-      const isLongEnough = studentAnswer.length > 15;
-      const isGood = hasKeywords && isLongEnough;
+                         studentAnswer.toLowerCase().includes('subtract') ||
+                         studentAnswer.toLowerCase().includes('because') ||
+                         studentAnswer.toLowerCase().includes('why');
+      const isGood = hasKeywords && hasExplanation;
 
       return {
         isGood,
         feedback: isGood 
-          ? "Great explanation! I can see you understand!" 
-          : "Can you explain it a bit more? Think about the formula.",
+          ? "Great explanation! I can see you really understand!" 
+          : "Can you explain it a bit more? Tell me WHY it works, not just WHAT it is.",
         shouldContinue: this.state.studentAnswers.length < 3
       };
     }
@@ -125,9 +144,10 @@ Question types to ask:
       this.conversationHistory.push(
         new HumanMessage(`Student answered: "${studentAnswer}"
         
-Evaluate if this shows good understanding. Then:
-- If GOOD: Give brief praise (1 sentence) and say if you want to ask more or if they're ready
-- If WEAK: Gently ask them to explain more (1 sentence)
+Evaluate if this shows DEEP understanding (not just memorization). Then:
+- If they show TRUE understanding (explains WHY, uses own words, gives examples): Give brief praise (1 sentence)
+- If they just repeated the formula or gave shallow answer: Ask them to explain WHY or HOW (1 sentence)
+- If they say "I don't know": Give a hint and ask again (1 sentence)
 
 Keep it SHORT and encouraging!`)
       );
@@ -137,12 +157,15 @@ Keep it SHORT and encouraging!`)
 
       this.conversationHistory.push(new AIMessage(feedback));
 
-      // Determine if answer is good based on AI response
-      const isGood = feedback.toLowerCase().includes('great') ||
+      // Determine if answer shows deep understanding
+      const isGood = (feedback.toLowerCase().includes('great') ||
                      feedback.toLowerCase().includes('good') ||
                      feedback.toLowerCase().includes('excellent') ||
                      feedback.toLowerCase().includes('perfect') ||
-                     feedback.toLowerCase().includes('correct');
+                     feedback.toLowerCase().includes('correct') ||
+                     feedback.toLowerCase().includes('understand')) &&
+                     !feedback.toLowerCase().includes('but') &&
+                     !feedback.toLowerCase().includes('however');
 
       const shouldContinue = this.state.studentAnswers.length < 3 && isGood;
 
