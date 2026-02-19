@@ -249,26 +249,26 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const currentCharacter = currentDialogue ? story.characters[currentDialogue.character] : null;
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 relative overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-6 relative overflow-hidden">
       
       {/* Background decoration */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-10 left-10 text-6xl">🌟</div>
         <div className="absolute top-20 right-20 text-6xl">✨</div>
         <div className="absolute bottom-10 left-20 text-6xl">💫</div>
         <div className="absolute bottom-20 right-10 text-6xl">⭐</div>
       </div>
 
-      {/* Title */}
+      {/* Title - Reduced margin */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8 relative z-10"
+        className="text-center mb-4 relative z-10 shrink-0"
       >
-        <div className="flex items-center justify-center gap-4 mb-4">
+        <div className="flex items-center justify-center gap-4 mb-3">
           <button
             onClick={() => setLanguage('english')}
-            className={`px-6 py-3 rounded-full font-black text-sm transition-all ${
+            className={`px-5 py-2 rounded-full font-black text-sm transition-all ${
               language === 'english'
                 ? 'bg-purple-600 text-white shadow-lg scale-110'
                 : 'bg-white text-purple-600 hover:bg-purple-50'
@@ -278,7 +278,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
           </button>
           <button
             onClick={() => setLanguage('hindi')}
-            className={`px-6 py-3 rounded-full font-black text-sm transition-all ${
+            className={`px-5 py-2 rounded-full font-black text-sm transition-all ${
               language === 'hindi'
                 ? 'bg-purple-600 text-white shadow-lg scale-110'
                 : 'bg-white text-purple-600 hover:bg-purple-50'
@@ -287,17 +287,17 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
             हिंदी
           </button>
         </div>
-        <h2 className="text-3xl font-black text-purple-900 mb-2">{getCurrentTitle()}</h2>
-        <p className="text-sm text-purple-600 font-bold">
+        <h2 className="text-2xl md:text-3xl font-black text-purple-900 mb-1">{getCurrentTitle()}</h2>
+        <p className="text-xs text-purple-600 font-bold">
           {language === 'hindi' ? 'एक सीखने की कहानी' : 'A Learning Story'}
         </p>
       </motion.div>
 
-      {/* Story Stage */}
-      <div className="flex-1 flex items-center justify-center relative mb-8">
+      {/* Story Stage - More space for bubbles */}
+      <div className="flex-1 flex items-center justify-center relative min-h-0 py-4">
         
         {/* Characters */}
-        <div className="w-full max-w-4xl flex items-end justify-between px-8 relative">
+        <div className="w-full max-w-4xl h-full flex items-end justify-between px-4 md:px-8 relative">
           
           {/* Teacher */}
           <motion.div
@@ -305,7 +305,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
               scale: currentDialogue?.character === 'teacher' ? 1.1 : 1,
               y: currentDialogue?.character === 'teacher' ? -10 : 0
             }}
-            className="flex flex-col items-center relative"
+            className="flex flex-col items-center relative h-full justify-end pb-4"
           >
             <AnimatePresence>
               {currentDialogue?.character === 'teacher' && showText && (
@@ -315,9 +315,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-4 bg-white rounded-3xl px-6 py-4 shadow-2xl border-4 border-blue-200 max-w-xs"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-blue-200 max-w-[280px] z-50"
                 >
-                  <p className="text-sm font-bold text-gray-800 leading-relaxed">
+                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
@@ -345,12 +345,12 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                 rotate: currentDialogue?.character === 'teacher' ? [-2, 2, -2] : 0
               }}
               transition={{ duration: 0.5, repeat: currentDialogue?.character === 'teacher' ? Infinity : 0 }}
-              className="text-9xl drop-shadow-xl"
+              className="text-7xl md:text-9xl drop-shadow-xl"
             >
               {story.characters.teacher.emoji}
             </motion.div>
-            <div className="mt-4 bg-blue-100 px-4 py-2 rounded-full border-2 border-blue-200">
-              <p className="text-xs font-black text-blue-900">{story.characters.teacher.name}</p>
+            <div className="mt-3 bg-blue-100 px-3 py-1 rounded-full border-2 border-blue-200">
+              <p className="text-[10px] md:text-xs font-black text-blue-900">{story.characters.teacher.name}</p>
             </div>
           </motion.div>
 
@@ -360,7 +360,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
               scale: currentDialogue?.character === 'student' ? 1.1 : 1,
               y: currentDialogue?.character === 'student' ? -10 : 0
             }}
-            className="flex flex-col items-center relative"
+            className="flex flex-col items-center relative h-full justify-end pb-4"
           >
             <AnimatePresence>
               {currentDialogue?.character === 'student' && showText && (
@@ -370,9 +370,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-4 bg-white rounded-3xl px-6 py-4 shadow-2xl border-4 border-purple-200 max-w-xs"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-purple-200 max-w-[280px] z-50"
                 >
-                  <p className="text-sm font-bold text-gray-800 leading-relaxed">
+                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
@@ -400,19 +400,19 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                 rotate: currentDialogue?.character === 'student' ? [2, -2, 2] : 0
               }}
               transition={{ duration: 0.5, repeat: currentDialogue?.character === 'student' ? Infinity : 0 }}
-              className="text-9xl drop-shadow-xl"
+              className="text-7xl md:text-9xl drop-shadow-xl"
             >
               {story.characters.student.emoji}
             </motion.div>
-            <div className="mt-4 bg-purple-100 px-4 py-2 rounded-full border-2 border-purple-200">
-              <p className="text-xs font-black text-purple-900">{story.characters.student.name}</p>
+            <div className="mt-3 bg-purple-100 px-3 py-1 rounded-full border-2 border-purple-200">
+              <p className="text-[10px] md:text-xs font-black text-purple-900">{story.characters.student.name}</p>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Progress indicator */}
-      <div className="mb-6 relative z-10">
+      <div className="mb-4 relative z-10 shrink-0">
         <div className="flex justify-center gap-2">
           {story.dialogue.map((_, idx) => (
             <motion.div
@@ -434,18 +434,18 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-4 relative z-10">
+      <div className="flex items-center justify-center gap-3 md:gap-4 relative z-10 shrink-0">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handlePlayPause}
-          className={`flex items-center gap-3 px-8 py-4 rounded-full font-black text-white shadow-xl border-b-4 ${
+          className={`flex items-center gap-2 md:gap-3 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-sm md:text-base text-white shadow-xl border-b-4 ${
             isPlaying 
               ? 'bg-red-500 border-red-700' 
               : 'bg-green-500 border-green-700'
           }`}
         >
-          {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+          {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6" /> : <Play className="w-5 h-5 md:w-6 md:h-6" />}
           {isPlaying 
             ? (language === 'hindi' ? 'रोकें' : 'Pause')
             : currentLine >= story.dialogue.length 
@@ -458,9 +458,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleReset}
-          className="p-4 rounded-full bg-white border-4 border-gray-200 text-gray-600 shadow-lg"
+          className="p-3 md:p-4 rounded-full bg-white border-4 border-gray-200 text-gray-600 shadow-lg"
         >
-          <RotateCcw className="w-6 h-6" />
+          <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
         </motion.button>
       </div>
 
