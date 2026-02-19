@@ -151,6 +151,12 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [quizResult, setQuizResult] = useState<'correct' | 'incorrect' | null>(null);
+  const [showFinalCheck, setShowFinalCheck] = useState(false);
+  const [teacherQuestion, setTeacherQuestion] = useState('');
+  const [studentResponse, setStudentResponse] = useState('');
+  const [checkingAnswer, setCheckingAnswer] = useState(false);
+  const [teacherFeedback, setTeacherFeedback] = useState('');
+  const [conversationCount, setConversationCount] = useState(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -198,6 +204,8 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const playNextLine = async () => {
     if (currentLine >= story.dialogue.length) {
       setIsPlaying(false);
+      // Start final comprehension check
+      startFinalCheck();
       return;
     }
 
@@ -226,6 +234,82 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
         }, 300); // Small delay between bubbles
       }, soundEnabled ? 800 : 2800);
     }
+  };
+
+  const startFinalCheck = () => {
+    setShowFinalCheck(true);
+    setConversationCount(0);
+    askTeacherQuestion();
+  };
+
+  const askTeacherQuestion = async () => {
+    const questions = [
+      `Wait! Before you go, can you explain the formula to me in your own words?`,
+      `Good! Now, can you tell me when we would use this formula?`,
+      `Excellent! One more thing - what happens if we change the numbers?`
+    ];
+    
+    const question = questions[Math.min(conversationCount, questions.length - 1)];
+    setTeacherQuestion(question);
+    
+    if (soundEnabled) {
+      await speak(question, 'teacher');
+    }
+  };
+
+  const handleStudentAnswer = async () => {
+    if (!studentResponse.trim()) return;
+    
+    setCheckingAnswer(true);
+    
+    // Simple validation - check if answer has key concepts
+    const hasFormula = studentResponse.toLowerCase().includes('×') || 
+                       studentResponse.toLowerCase().includes('multiply') ||
+                       studentResponse.toLowerCase().includes('times');
+    const hasNumbers = /\d/.test(studentResponse);
+    const isLongEnough = studentResponse.length > 15;
+    
+    const isGoodAnswer = (hasFormula || hasNumbers) && isLongEnough;
+    
+    await new Promise(r => setTimeout(r, 1000));
+    
+    if (isGoodAnswer) {
+      const feedback = conversationCount === 0 
+        ? "Great explanation! I can see you understand the concept."
+        : conversationCount === 1
+        ? "Perfect! You really get it now."
+        : "Wonderful! You're ready to solve problems on your own! 🎉";
+      
+      setTeacherFeedback(feedback);
+      if (soundEnabled) await speak(feedback, 'teacher');
+      
+      setConversationCount(prev => prev + 1);
+      
+      if (conversationCount >= 2) {
+        // Student passed the check!
+        setTimeout(() => {
+          setShowFinalCheck(false);
+        }, 2000);
+      } else {
+        // Ask another question
+        setTimeout(() => {
+          setTeacherFeedback('');
+          setStudentResponse('');
+          askTeacherQuestion();
+        }, 2000);
+      }
+    } else {
+      const feedback = "Hmm, can you explain it a bit more? Think about the formula we learned.";
+      setTeacherFeedback(feedback);
+      if (soundEnabled) await speak(feedback, 'teacher');
+      
+      setTimeout(() => {
+        setTeacherFeedback('');
+        setStudentResponse('');
+      }, 2000);
+    }
+    
+    setCheckingAnswer(false);
   };
 
   const handleQuizSubmit = () => {
@@ -584,9 +668,105 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
         )}
       </AnimatePresence>
 
+      {/* Final Comprehension Check */}
+      <AnimatePresence>
+        {showFinalCheck && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 shadow-2xl border-8 border-purple-400 max-w-2xl w-full"
+            >
+              {/* Teacher asking question */}
+              <div className="flex items-start gap-4 mb-6">
+                <div className="text-6xl">{story.characters.teacher.emoji}</div>
+                <div className="flex-1">
+                  <div className="bg-white rounded-3xl px-6 py-4 shadow-lg border-4 border-blue-200">
+                    <p className="text-lg font-bold text-gray-800 leading-relaxed">
+                      {teacherQuestion}
+                    </p>
+                  </div>
+                  <p className="text-xs font-black text-blue-600 mt-2 ml-2">
+                    {story.characters.teacher.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Student response area */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="text-6xl">{story.characters.student.emoji}</div>
+                  <div className="flex-1">
+                    <textarea
+                      value={studentResponse}
+                      onChange={(e) => setStudentResponse(e.target.value)}
+                      placeholder={language === 'hindi' ? 'अपना जवाब यहाँ लिखें...' : 'Type your answer here...'}
+                      className="w-full px-6 py-4 rounded-2xl border-4 border-purple-200 text-base font-bold resize-none focus:outline-none focus:border-purple-500 transition-colors"
+                      rows={3}
+                      disabled={checkingAnswer}
+                    />
+                    <p className="text-xs font-black text-purple-600 mt-2 ml-2">
+                      {story.characters.student.name}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Teacher feedback */}
+                {teacherFeedback && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-2xl border-4 ${
+                      teacherFeedback.includes('Great') || teacherFeedback.includes('Perfect') || teacherFeedback.includes('Wonderful')
+                        ? 'bg-green-50 border-green-300 text-green-800'
+                        : 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                    }`}
+                  >
+                    <p className="font-bold text-center">{teacherFeedback}</p>
+                  </motion.div>
+                )}
+
+                {/* Submit button */}
+                <button
+                  onClick={handleStudentAnswer}
+                  disabled={checkingAnswer || !studentResponse.trim()}
+                  className="w-full py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl font-black text-lg shadow-lg hover:from-purple-600 hover:to-purple-700 transition-all border-b-4 border-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {checkingAnswer ? '🤔 Checking...' : language === 'hindi' ? 'जवाब दें' : 'Answer!'}
+                </button>
+
+                {/* Progress indicator */}
+                <div className="flex justify-center gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-3 rounded-full ${
+                        i < conversationCount ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-center text-gray-600 font-bold">
+                  {language === 'hindi' 
+                    ? `प्रश्न ${conversationCount + 1} / 3`
+                    : `Question ${conversationCount + 1} of 3`
+                  }
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Completion message */}
       <AnimatePresence>
-        {currentLine >= story.dialogue.length && !isPlaying && (
+        {currentLine >= story.dialogue.length && !isPlaying && !showFinalCheck && conversationCount >= 3 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
