@@ -646,66 +646,92 @@ export default function App() {
         
         {/* Header */}
         <header className="mb-10 text-center relative">
-          <div className="absolute top-0 right-0 flex gap-3">
+          
+          {/* Big Prominent Story Mode Button */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center gap-4 mb-6"
+          >
             <motion.button 
               onClick={handleStoryModeToggle}
-              whileHover={{ scale: 1.1, rotate: storyMode ? 0 : 5 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
               animate={{ 
-                scale: storyMode ? [1, 1.1, 1] : 1,
-                rotate: storyMode ? [0, -5, 5, 0] : 0
+                boxShadow: storyMode 
+                  ? ['0 10px 30px rgba(168, 85, 247, 0.4)', '0 15px 40px rgba(236, 72, 153, 0.5)', '0 10px 30px rgba(168, 85, 247, 0.4)']
+                  : '0 10px 25px rgba(0, 0, 0, 0.1)'
               }}
               transition={{ 
-                duration: 0.3,
+                duration: 2,
+                repeat: Infinity,
                 type: "spring",
-                stiffness: 300,
+                stiffness: 200,
                 damping: 15
               }}
-              className={`relative p-4 rounded-full border-4 shadow-lg transition-all duration-300 ${
+              className={`relative px-8 py-4 rounded-3xl border-4 shadow-2xl transition-all duration-300 flex items-center gap-4 ${
                 storyMode 
-                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-purple-300 shadow-purple-300' 
-                  : 'bg-white/80 border-white hover:bg-white hover:shadow-xl'
+                  ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 border-purple-300 bg-[length:200%_100%] animate-[gradient_3s_ease_infinite]' 
+                  : 'bg-gradient-to-r from-white to-purple-50 border-purple-200 hover:border-purple-400'
               }`}
             >
-              <MessageCircle className={`w-6 h-6 transition-colors ${storyMode ? 'text-white' : currentProblemDef.theme.text}`} />
+              {/* Icon with animation */}
+              <motion.div
+                animate={{ 
+                  rotate: storyMode ? [0, -10, 10, -10, 0] : 0,
+                  scale: storyMode ? [1, 1.1, 1] : 1
+                }}
+                transition={{ duration: 0.5, repeat: storyMode ? Infinity : 0, repeatDelay: 2 }}
+              >
+                <MessageCircle className={`w-8 h-8 transition-colors ${storyMode ? 'text-white' : 'text-purple-600'}`} />
+              </motion.div>
               
-              {/* Playful indicator */}
-              {storyMode && (
+              {/* Text */}
+              <div className="text-left">
+                <div className={`text-xl font-black ${storyMode ? 'text-white' : 'text-purple-900'}`}>
+                  {storyMode ? '📖 Story Mode ON' : '🎮 Try Story Mode!'}
+                </div>
+                <div className={`text-xs font-bold ${storyMode ? 'text-purple-100' : 'text-purple-600'}`}>
+                  {storyMode ? 'Click to switch back' : 'Learn with conversations'}
+                </div>
+              </div>
+              
+              {/* Sparkle effect */}
+              {!storyMode && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-2xl"
                 >
-                  <motion.div
-                    animate={{ scale: [1, 1.3, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                    className="w-full h-full bg-green-400 rounded-full"
-                  />
+                  ✨
                 </motion.div>
               )}
               
-              {/* Tooltip */}
-              {!storyMode && (
+              {/* Active indicator */}
+              {storyMode && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg pointer-events-none"
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center"
                 >
-                  Story Mode! 📖
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-purple-600 rotate-45" />
+                  <span className="text-xs">✓</span>
                 </motion.div>
               )}
             </motion.button>
-            
+
+            {/* Sound button - smaller but still visible */}
             <motion.button 
               onClick={() => setSoundEnabled(!soundEnabled)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="p-4 rounded-full bg-white/80 border-4 border-white shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300"
+              className="p-4 rounded-2xl bg-white border-4 border-purple-100 shadow-lg hover:border-purple-300 hover:shadow-xl transition-all duration-300"
             >
-              {soundEnabled ? <Volume2 className={`w-6 h-6 ${currentProblemDef.theme.text}`} /> : <VolumeX className="w-6 h-6 text-zinc-400" />}
+              {soundEnabled ? <Volume2 className="w-6 h-6 text-purple-600" /> : <VolumeX className="w-6 h-6 text-zinc-400" />}
             </motion.button>
-          </div>
+          </motion.div>
 
           <motion.div 
             initial={{ scale: 0 }}
