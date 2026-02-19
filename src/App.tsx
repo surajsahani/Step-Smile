@@ -38,8 +38,10 @@ import {
   Activity,
   Share2,
   Search,
-  Zap
+  Zap,
+  MessageCircle
 } from 'lucide-react';
+import StoryMode from './StoryMode';
 
 type ProblemType = 'exam' | 'icecream' | 'snail' | 'mindist' | 'maxmin' | 'goodsub' | 'graph' | 'atleast';
 
@@ -284,6 +286,7 @@ export default function App() {
   const [thinking, setThinking] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [storyMode, setStoryMode] = useState(false);
   
   const mainControls = useAnimation();
   const simulationRef = useRef<NodeJS.Timeout | null>(null);
@@ -606,6 +609,14 @@ export default function App() {
         <header className="mb-10 text-center relative">
           <div className="absolute top-0 right-0 flex gap-2">
             <button 
+              onClick={() => setStoryMode(!storyMode)}
+              className={`p-4 rounded-full border-4 border-white shadow-sm transition-colors ${
+                storyMode ? 'bg-purple-500 text-white' : 'bg-white/50 hover:bg-white'
+              }`}
+            >
+              <MessageCircle className={`w-6 h-6 ${storyMode ? 'text-white' : currentProblemDef.theme.text}`} />
+            </button>
+            <button 
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-4 rounded-full bg-white/50 border-4 border-white shadow-sm hover:bg-white transition-colors"
             >
@@ -666,6 +677,11 @@ export default function App() {
           
           {/* Left Column: The Game World */}
           <div className="lg:col-span-8 flex flex-col gap-6">
+            {storyMode ? (
+              <section className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 min-h-[650px]`}>
+                <StoryMode problemId={activeProblem} soundEnabled={soundEnabled} />
+              </section>
+            ) : (
             <section className={`bg-white rounded-[3rem] p-8 shadow-2xl border-8 ${currentProblemDef.theme.border} relative overflow-hidden flex-1 flex flex-col gap-10 min-h-[650px]`}>
               
               {/* Pedagogy Header: Given & Find */}
@@ -1089,6 +1105,7 @@ export default function App() {
               </div>
             </div>
           </section>
+            )}
           </div>
 
           {/* Right Column: Settings & Big Result */}
