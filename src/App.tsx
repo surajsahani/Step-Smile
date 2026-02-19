@@ -71,8 +71,8 @@ const PROBLEMS: ProblemDef[] = [
     id: 'exam',
     level: 1,
     title: 'Rush to Exam',
-    emoji: '🫏',
-    description: 'Can the Donkey collect enough pages for the exam?',
+    emoji: '🎒',
+    description: 'Can the Student collect enough pages for the exam?',
     link: 'https://www.codechef.com/problems/RUSHTOEXAM',
     concept: 'Repeated Addition (Grouping)',
     given: ['Time we have (Hours)', 'Pages per Hour'],
@@ -781,7 +781,7 @@ export default function App() {
                           animate={mainControls}
                           className="text-7xl drop-shadow-xl relative"
                         >
-                          🫏
+                          🎒
                           {/* The Bag */}
                           <motion.div 
                             animate={{ scale: 1 + (currentVal * 0.05) }}
