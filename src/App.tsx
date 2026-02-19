@@ -288,6 +288,9 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [storyMode, setStoryMode] = useState(false);
   const [showModeSwitch, setShowModeSwitch] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [waitingForAction, setWaitingForAction] = useState(false);
+  const [actionPrompt, setActionPrompt] = useState<string>('');
   
   const mainControls = useAnimation();
 
@@ -371,6 +374,9 @@ export default function App() {
     stopSimulation();
     setSimStep(0);
     setSimPhase('idle');
+    setGameStarted(false);
+    setWaitingForAction(false);
+    setActionPrompt('');
     setExplanation('Ready to learn? Press Start!');
     setThinking('We will solve this step-by-step to understand the logic.');
     if (activeProblem === 'snail') {
@@ -388,6 +394,150 @@ export default function App() {
     }
   };
 
+  const handlePlayerAction = async (action: 'next' | 'climb' | 'collect') => {
+    if (!waitingForAction) return;
+    
+    setWaitingForAction(false);
+    if (soundEnabled) playSound('click');
+    
+    // Continue the game based on the action
+    if (activeProblem === 'snail') {
+      continueSnailGame();
+    } else if (activeProblem === 'exam') {
+      continueExamGame();
+    } else if (activeProblem === 'icecream') {
+      continueIceCreamGame();
+    }
+  };
+
+  let snailPos = 0;
+  let snailStep = 0;
+  let examTotal = 0;
+  let examHour = 0;
+  let iceCreamLeft = 0;
+  let iceCreamMinute = 0;
+
+  const continueSnailGame = async () => {
+    const n = Number(inputs.n), a = Number(inputs.a), b = Number(inputs.b);
+    snailStep++;
+    setSimStep(snailStep);
+    
+    if (soundEnabled) playSound('climb');
+    setExplanation(`Day ${snailStep}: You helped the snail climb ${a}m!`);
+    setThinking(`Great job! The snail climbed ${a}m up.`);
+    snailPos = Math.max(0, snailPos - a);
+    setCurrentVal(snailPos);
+    await mainControls.start({ y: `${(snailPos / n) * 100}%`, rotate: -15, scale: 1.2 });
+    
+    if (snailPos <= 0) {
+      setExplanation(`🎉 YOU WON! Snail escaped in ${snailStep} days!`);
+      setThinking(`Amazing! You helped the snail reach the top!`);
+      setSimPhase('finished');
+      setIsSimulating(false);
+      setGameStarted(false);
+      if (soundEnabled) playSound('win');
+      unlockNextLevel();
+      await mainControls.start({ scale: [1.2, 2, 1.5], rotate: [0, 20, -20, 0] });
+      return;
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    if (soundEnabled) playSound('slide');
+    setExplanation(`Oh no! Snail slides back ${b}m at night...`);
+    setThinking(`The snail needs to rest. It slides back ${b}m.`);
+    snailPos = snailPos + b;
+    setCurrentVal(snailPos);
+    await mainControls.start({ y: `${(snailPos / n) * 100}%`, rotate: 15, scale: 0.9 });
+    
+    await new Promise(r => setTimeout(r, 1000));
+    setExplanation(`Day ${snailStep} complete! Net progress: ${a - b}m`);
+    setThinking(`Click "Help Climb!" to continue the next day!`);
+    setActionPrompt('Click to help the snail climb again!');
+    setWaitingForAction(true);
+  };
+
+  const continueExamGame = async () => {
+    const n = Number(inputs.n), m = Number(inputs.m), a = Number(inputs.a);
+    examHour++;
+    setSimStep(examHour);
+    
+    setExplanation(`Hour ${examHour}: You collected ${a} pages!`);
+    setThinking(`Great! You're working hard to collect pages.`);
+    examTotal += a;
+    setCurrentVal(examTotal);
+    if (soundEnabled) playSound('climb');
+    await mainControls.start({ x: (examHour - 1) * 20, scale: [1, 1.2, 1], transition: { duration: 0.5 } });
+    
+    setExplanation(`Total in bag: ${examTotal} pages`);
+    setThinking(`You have ${examTotal} pages. Need ${m} pages total.`);
+    
+    if (examTotal >= m) {
+      setExplanation(`🎉 YOU WIN! You have enough pages for the exam!`);
+      setThinking(`Success! ${examTotal} pages is enough!`);
+      setSimPhase('finished');
+      setIsSimulating(false);
+      setGameStarted(false);
+      if (soundEnabled) playSound('win');
+      unlockNextLevel();
+      return;
+    }
+    
+    if (examHour >= n) {
+      setExplanation(`⏰ Time's up! Only ${examTotal} pages. Need ${m}.`);
+      setThinking(`Not enough time. Try adjusting the numbers!`);
+      setSimPhase('finished');
+      setIsSimulating(false);
+      setGameStarted(false);
+      return;
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    setActionPrompt('Click to collect more pages!');
+    setWaitingForAction(true);
+  };
+
+  const continueIceCreamGame = async () => {
+    const x = Number(inputs.x), y = Number(inputs.y), n = Number(inputs.n);
+    iceCreamMinute++;
+    setSimStep(iceCreamMinute);
+    
+    setExplanation(`Minute ${iceCreamMinute}: ${y}g melted...`);
+    setThinking(`The sun is hot! Ice cream is melting.`);
+    iceCreamLeft = Math.max(0, iceCreamLeft - y);
+    setCurrentVal(iceCreamLeft);
+    if (soundEnabled) playSound('slide');
+    await mainControls.start({ scale: iceCreamLeft / x, opacity: 0.5 + (iceCreamLeft / x) * 0.5 });
+    
+    setExplanation(`Remaining: ${iceCreamLeft.toFixed(0)}g`);
+    setThinking(`You have ${iceCreamLeft}g left.`);
+    
+    if (iceCreamLeft <= 0) {
+      setExplanation(`😢 All melted! 0g left.`);
+      setThinking(`The ice cream is gone! Try eating it faster next time!`);
+      setSimPhase('finished');
+      setIsSimulating(false);
+      setGameStarted(false);
+      if (soundEnabled) playSound('win');
+      unlockNextLevel();
+      return;
+    }
+    
+    if (iceCreamMinute >= n) {
+      setExplanation(`🎉 You saved ${iceCreamLeft}g of ice cream!`);
+      setThinking(`Good job! You still have some ice cream left!`);
+      setSimPhase('finished');
+      setIsSimulating(false);
+      setGameStarted(false);
+      if (soundEnabled) playSound('win');
+      unlockNextLevel();
+      return;
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    setActionPrompt('Click to see the next minute!');
+    setWaitingForAction(true);
+  };
+
   const unlockNextLevel = () => {
     const nextLevel = currentProblemDef.level + 1;
     if (nextLevel > unlockedLevel && nextLevel <= PROBLEMS.length) {
@@ -398,106 +548,47 @@ export default function App() {
 
   const startSimulation = async () => {
     if (soundEnabled) playSound('click');
-    if (isSimulating) {
-      stopSimulation();
+    
+    if (gameStarted) {
+      // Reset if already playing
+      resetSimulation();
       return;
     }
 
+    setGameStarted(true);
+    setIsSimulating(true);
+    setSimPhase('active');
+    
+    // Initialize game variables
     if (activeProblem === 'snail') {
       const n = Number(inputs.n), a = Number(inputs.a), b = Number(inputs.b);
       if (isNaN(n) || isNaN(a) || isNaN(b) || a <= b) return;
-      setIsSimulating(true);
-      setSimPhase('active');
-      let pos = n;
-      let step = 0;
-      const runStep = async () => {
-        step++; setSimStep(step);
-        if (soundEnabled) playSound('climb');
-        setExplanation(`Day ${step}: Climbing up ${a}m...`);
-        setThinking(`Rule: Each day we try to reach the top by climbing ${a}m.`);
-        pos = Math.max(0, pos - a);
-        setCurrentVal(pos);
-        await mainControls.start({ y: `${(pos / n) * 100}%`, rotate: -15, scale: 1.2 });
-        
-        if (pos <= 0) {
-          setExplanation(`WHEEE! Snail is out in ${step} days!`);
-          setThinking(`Goal Reached! On the last day, the snail reached the top and didn't slide back.`);
-          setSimPhase('finished'); setIsSimulating(false);
-          if (soundEnabled) playSound('win');
-          unlockNextLevel();
-          await mainControls.start({ scale: [1.2, 2, 1.5], rotate: [0, 20, -20, 0] });
-          return;
-        }
-        
-        await new Promise(r => setTimeout(r, 1000));
-        if (soundEnabled) playSound('slide');
-        setExplanation(`Oh no! Sliding back ${b}m...`);
-        setThinking(`Rule: If the snail hasn't reached the top, it slides back ${b}m at night.`);
-        pos = pos + b;
-        setCurrentVal(pos);
-        await mainControls.start({ y: `${(pos / n) * 100}%`, rotate: 15, scale: 0.9 });
-        setExplanation(`Day ${step} end: Only ${a - b}m closer!`);
-        setThinking(`Concept: The "Net Progress" is ${a} - ${b} = ${a-b}m per day.`);
-        await new Promise(r => setTimeout(r, 1000));
-        simulationRef.current = setTimeout(runStep, 100);
-      };
-      runStep();
+      snailPos = n;
+      snailStep = 0;
+      setExplanation(`Help the snail escape from a ${n}m deep hole!`);
+      setThinking(`The snail can climb ${a}m up but slides ${b}m down each night.`);
+      setActionPrompt('Click "Help Climb!" to start!');
+      setWaitingForAction(true);
     } else if (activeProblem === 'exam') {
       const n = Number(inputs.n), m = Number(inputs.m), a = Number(inputs.a);
-      setIsSimulating(true);
-      setSimPhase('active');
-      let total = 0;
-      for (let i = 1; i <= n; i++) {
-        setSimStep(i);
-        setExplanation(`Hour ${i}: Donkey collects ${a} pages...`);
-        setThinking(`Concept: We are grouping pages by hour. This is "Repeated Addition".`);
-        total += a;
-        setCurrentVal(total);
-        if (soundEnabled) playSound('climb');
-        await mainControls.start({ x: (i - 1) * 20, scale: [1, 1.2, 1], transition: { duration: 0.5 } });
-        setExplanation(`Total pages in bag: ${total}`);
-        setThinking(`Math: ${total-a} + ${a} = ${total}. We keep adding ${a} every hour.`);
-        if (total >= m) {
-          setExplanation(`Goal reached! ${total} is enough!`);
-          setThinking(`Logic: Since ${total} is greater than or equal to ${m}, we have enough pages.`);
-          break;
-        }
-        await new Promise(r => setTimeout(r, 1500));
-      }
-      setSimPhase('finished');
-      setIsSimulating(false);
-      if (total < m) {
-        setExplanation(`Time's up! Only ${total} pages collected.`);
-        setThinking(`Logic: Since ${total} is less than ${m}, we don't have enough pages.`);
-      }
-      if (soundEnabled && (total >= m)) playSound('win');
-      unlockNextLevel();
+      if (isNaN(n) || isNaN(m) || isNaN(a)) return;
+      examTotal = 0;
+      examHour = 0;
+      setExplanation(`Collect ${m} pages in ${n} hours for the exam!`);
+      setThinking(`You can collect ${a} pages per hour. Let's start!`);
+      setActionPrompt('Click "Collect Pages!" to begin!');
+      setWaitingForAction(true);
     } else if (activeProblem === 'icecream') {
       const x = Number(inputs.x), y = Number(inputs.y), n = Number(inputs.n);
-      setIsSimulating(true);
-      setSimPhase('active');
-      let left = x;
-      for (let i = 1; i <= n; i++) {
-        setSimStep(i);
-        setExplanation(`Minute ${i}: ${y}g melts away...`);
-        setThinking(`Concept: This is "Repeated Subtraction". We take away ${y} every minute.`);
-        left = Math.max(0, left - y);
-        setCurrentVal(left);
-        if (soundEnabled) playSound('slide');
-        await mainControls.start({ scale: left / x, opacity: 0.5 + (left / x) * 0.5 });
-        setExplanation(`Remaining ice cream: ${left.toFixed(0)}g`);
-        setThinking(`Math: ${left+y} - ${y} = ${left}. We subtract the melt rate.`);
-        if (left <= 0) {
-          setExplanation(`All melted! 0g left.`);
-          setThinking(`Logic: The ice cream is completely gone.`);
-          break;
-        }
-        await new Promise(r => setTimeout(r, 1500));
-      }
-      setSimPhase('finished');
-      setIsSimulating(false);
-      if (soundEnabled) playSound('win');
-      unlockNextLevel();
+      if (isNaN(x) || isNaN(y) || isNaN(n)) return;
+      iceCreamLeft = x;
+      iceCreamMinute = 0;
+      setExplanation(`You have ${x}g of ice cream! It melts ${y}g per minute.`);
+      setThinking(`Watch your ice cream for ${n} minutes. Will it survive?`);
+      setActionPrompt('Click "Next Minute!" to start!');
+      setWaitingForAction(true);
+    }
+  };
     } else {
       // Generic simulation for new problems
       setIsSimulating(true);
@@ -1232,29 +1323,56 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mt-8">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={startSimulation}
-                    disabled={!!result && 'error' in result}
-                    className={`flex-1 flex items-center justify-center gap-3 py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest transition-all shadow-xl border-b-8 ${
-                      isSimulating 
-                      ? 'bg-zinc-200 text-zinc-900 border-zinc-300' 
-                      : 'bg-green-500 text-white border-green-700 hover:bg-green-400'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {isSimulating ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                    {isSimulating ? '⏸️ Pause' : '▶️ Play!'}
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={resetSimulation}
-                    className="p-6 rounded-[2rem] bg-white border-4 border-zinc-100 text-zinc-300 hover:text-zinc-500 hover:border-zinc-300 transition-all shadow-lg"
-                  >
-                    <RotateCcw className="w-8 h-8" />
-                  </motion.button>
+                <div className="flex flex-col gap-4 mt-8">
+                  {/* Action Button - appears when waiting for player */}
+                  <AnimatePresence>
+                    {waitingForAction && (
+                      <motion.button
+                        initial={{ scale: 0, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0, y: 20 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handlePlayerAction('next')}
+                        className="w-full flex items-center justify-center gap-3 py-8 rounded-[2rem] text-2xl font-black uppercase tracking-widest bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-2xl border-b-8 border-orange-600 hover:from-yellow-500 hover:to-orange-500 animate-pulse"
+                      >
+                        <Zap className="w-8 h-8" />
+                        {activeProblem === 'snail' ? '🐌 Help Climb!' :
+                         activeProblem === 'exam' ? '📚 Collect Pages!' :
+                         activeProblem === 'icecream' ? '⏱️ Next Minute!' : 'Continue!'}
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Start/Reset Buttons */}
+                  <div className="flex items-center gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={startSimulation}
+                      disabled={!!result && 'error' in result}
+                      className={`flex-1 flex items-center justify-center gap-3 py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest transition-all shadow-xl border-b-8 ${
+                        gameStarted 
+                        ? 'bg-red-500 text-white border-red-700 hover:bg-red-400' 
+                        : 'bg-green-500 text-white border-green-700 hover:bg-green-400'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {gameStarted ? <RotateCcw className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                      {gameStarted ? '🔄 Restart' : '🎮 Start Game!'}
+                    </motion.button>
+                    {gameStarted && (
+                      <motion.button
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={resetSimulation}
+                        className="p-6 rounded-[2rem] bg-white border-4 border-zinc-100 text-zinc-300 hover:text-zinc-500 hover:border-zinc-300 transition-all shadow-lg"
+                      >
+                        <XCircle className="w-8 h-8" />
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
