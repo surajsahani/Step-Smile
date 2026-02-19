@@ -3,7 +3,9 @@ import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages
 
 // Initialize the AI model
 const getModel = () => {
-  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                 process.env.GEMINI_API_KEY || 
+                 'AIzaSyB_iOynqhuYf6SP7041cO_SfGBywBQbN50'; // Fallback key
   
   if (!apiKey) {
     console.warn('No Gemini API key found, using fallback mode');
