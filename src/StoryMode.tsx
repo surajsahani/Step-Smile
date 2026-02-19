@@ -425,7 +425,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       <div className="flex-1 flex items-center justify-center relative min-h-[400px] py-8 overflow-visible">
         
         {/* Characters */}
-        <div className="w-full max-w-4xl h-full flex items-end justify-between px-4 md:px-8 relative pt-32">
+        <div className="w-full max-w-5xl h-full flex items-end justify-between px-4 md:px-12 relative pt-32 gap-8">
           
           {/* Teacher */}
           <motion.div
@@ -443,9 +443,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-blue-200 max-w-[320px] w-max z-50"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-6 py-4 shadow-2xl border-4 border-blue-200 max-w-sm z-50"
                 >
-                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed break-words">
+                  <p className="text-sm font-bold text-gray-800 leading-relaxed whitespace-normal break-words hyphens-auto">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
@@ -498,9 +498,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-purple-200 max-w-[320px] w-max z-50"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-6 py-4 shadow-2xl border-4 border-purple-200 max-w-sm z-50"
                 >
-                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed break-words">
+                  <p className="text-sm font-bold text-gray-800 leading-relaxed whitespace-normal break-words hyphens-auto">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
