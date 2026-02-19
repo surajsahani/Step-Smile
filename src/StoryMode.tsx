@@ -182,12 +182,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
     utterance.rate = charData.voice.rate;
     utterance.volume = 0.8;
     
-    // Set language based on selection
-    if (language === 'hindi') {
-      utterance.lang = 'hi-IN';
-    } else {
-      utterance.lang = 'en-US';
-    }
+    // Always use default system voice (sounds most natural)
+    // Don't set language - let the browser use its best voice
+
 
     synthRef.current = utterance;
     window.speechSynthesis.speak(utterance);
