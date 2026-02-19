@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { AITeacher } from './aiTeacher';
 
 interface Character {
   name: string;
@@ -159,6 +160,7 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const [conversationCount, setConversationCount] = useState(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const aiTeacherRef = useRef<AITeacher | null>(null);
 
   const story = STORIES[problemId] || STORIES.exam;
 
@@ -239,70 +241,73 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
   const startFinalCheck = () => {
     setShowFinalCheck(true);
     setConversationCount(0);
+    
+    // Initialize AI Teacher with the concept
+    const conceptInfo = {
+      exam: { concept: "Repeated Addition (Multiplication)", formula: "Pages per Hour × Hours = Total Pages" },
+      snail: { concept: "Net Progress (Subtraction)", formula: "Climb - Slide = Net Progress per Day" },
+      icecream: { concept: "Repeated Subtraction", formula: "Start - (Melt Rate × Minutes) = Leftover" }
+    };
+    
+    const info = conceptInfo[problemId as keyof typeof conceptInfo] || conceptInfo.exam;
+    aiTeacherRef.current = new AITeacher(info.concept, info.formula);
+    
     askTeacherQuestion();
   };
 
   const askTeacherQuestion = async () => {
-    const questions = [
-      `Wait! Before you go, can you explain the formula to me in your own words?`,
-      `Good! Now, can you tell me when we would use this formula?`,
-      `Excellent! One more thing - what happens if we change the numbers?`
-    ];
+    if (!aiTeacherRef.current) return;
     
-    const question = questions[Math.min(conversationCount, questions.length - 1)];
-    setTeacherQuestion(question);
-    
-    if (soundEnabled) {
-      await speak(question, 'teacher');
+    try {
+      const question = await aiTeacherRef.current.askQuestion();
+      setTeacherQuestion(question);
+      
+      if (soundEnabled) {
+        await speak(question, 'teacher');
+      }
+    } catch (error) {
+      console.error('Error asking question:', error);
+      setTeacherQuestion("Can you explain what you learned?");
     }
   };
 
   const handleStudentAnswer = async () => {
-    if (!studentResponse.trim()) return;
+    if (!studentResponse.trim() || !aiTeacherRef.current) return;
     
     setCheckingAnswer(true);
     
-    // Simple validation - check if answer has key concepts
-    const hasFormula = studentResponse.toLowerCase().includes('×') || 
-                       studentResponse.toLowerCase().includes('multiply') ||
-                       studentResponse.toLowerCase().includes('times');
-    const hasNumbers = /\d/.test(studentResponse);
-    const isLongEnough = studentResponse.length > 15;
-    
-    const isGoodAnswer = (hasFormula || hasNumbers) && isLongEnough;
-    
-    await new Promise(r => setTimeout(r, 1000));
-    
-    if (isGoodAnswer) {
-      const feedback = conversationCount === 0 
-        ? "Great explanation! I can see you understand the concept."
-        : conversationCount === 1
-        ? "Perfect! You really get it now."
-        : "Wonderful! You're ready to solve problems on your own! 🎉";
+    try {
+      const evaluation = await aiTeacherRef.current.evaluateAnswer(studentResponse);
       
-      setTeacherFeedback(feedback);
-      if (soundEnabled) await speak(feedback, 'teacher');
+      setTeacherFeedback(evaluation.feedback);
+      if (soundEnabled) await speak(evaluation.feedback, 'teacher');
       
-      setConversationCount(prev => prev + 1);
+      if (evaluation.isGood) {
+        setConversationCount(prev => prev + 1);
+      }
       
-      if (conversationCount >= 2) {
-        // Student passed the check!
+      if (aiTeacherRef.current.isComplete() && evaluation.isGood) {
+        // Student passed all checks!
         setTimeout(() => {
           setShowFinalCheck(false);
-        }, 2000);
-      } else {
-        // Ask another question
+        }, 3000);
+      } else if (evaluation.shouldContinue && evaluation.isGood) {
+        // Ask next question
         setTimeout(() => {
           setTeacherFeedback('');
           setStudentResponse('');
           askTeacherQuestion();
-        }, 2000);
+        }, 2500);
+      } else {
+        // Need better answer
+        setTimeout(() => {
+          setTeacherFeedback('');
+          setStudentResponse('');
+        }, 2500);
       }
-    } else {
-      const feedback = "Hmm, can you explain it a bit more? Think about the formula we learned.";
-      setTeacherFeedback(feedback);
-      if (soundEnabled) await speak(feedback, 'teacher');
-      
+    } catch (error) {
+      console.error('Error evaluating answer:', error);
+      setTeacherFeedback("Good effort! Let's continue.");
       setTimeout(() => {
         setTeacherFeedback('');
         setStudentResponse('');
