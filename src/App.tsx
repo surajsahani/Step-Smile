@@ -589,22 +589,6 @@ export default function App() {
       setWaitingForAction(true);
     }
   };
-    } else {
-      // Generic simulation for new problems
-      setIsSimulating(true);
-      setSimPhase('active');
-      for (let i = 1; i <= 5; i++) {
-        setSimStep(i);
-        if (soundEnabled) playSound('click');
-        await mainControls.start({ rotate: i * 72, scale: 1.1 });
-        await new Promise(r => setTimeout(r, 300));
-      }
-      setSimPhase('finished');
-      setIsSimulating(false);
-      if (soundEnabled) playSound('win');
-      unlockNextLevel();
-    }
-  };
 
   useEffect(() => {
     resetSimulation();
