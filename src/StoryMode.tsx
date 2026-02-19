@@ -34,8 +34,8 @@ const STORIES: Record<string, StoryScript> = {
   exam: {
     title: "The Student's Exam Rush",
     characters: {
-      teacher: { name: 'Professor Owl', emoji: '🦉', position: 'left', voice: { pitch: 0.8, rate: 0.9 } },
-      student: { name: 'Student Sam', emoji: '🎒', position: 'right', voice: { pitch: 1.2, rate: 1.0 } }
+      teacher: { name: 'Professor Owl', emoji: '🦉', position: 'left', voice: { pitch: 1.0, rate: 0.95 } },
+      student: { name: 'Student Sam', emoji: '🎒', position: 'right', voice: { pitch: 1.05, rate: 1.0 } }
     },
     dialogue: [
       { character: 'student', text: "Oh no! My exam is in 3 hours and I need 6 pages of notes!", emotion: 'confused' },
@@ -69,8 +69,8 @@ const STORIES: Record<string, StoryScript> = {
   snail: {
     title: "The Snail's Great Escape",
     characters: {
-      teacher: { name: 'Wise Turtle', emoji: '🐢', position: 'left', voice: { pitch: 0.7, rate: 0.8 } },
-      student: { name: 'Snail Sam', emoji: '🐌', position: 'right', voice: { pitch: 1.3, rate: 1.1 } }
+      teacher: { name: 'Wise Turtle', emoji: '🐢', position: 'left', voice: { pitch: 0.95, rate: 0.9 } },
+      student: { name: 'Snail Sam', emoji: '🐌', position: 'right', voice: { pitch: 1.05, rate: 1.0 } }
     },
     dialogue: [
       { character: 'student', text: "Help! I'm stuck in a 10-meter deep hole!", emotion: 'confused' },
@@ -104,8 +104,8 @@ const STORIES: Record<string, StoryScript> = {
   icecream: {
     title: "The Melting Ice Cream Mystery",
     characters: {
-      teacher: { name: 'Chef Bear', emoji: '🐻', position: 'left', voice: { pitch: 0.9, rate: 0.9 } },
-      student: { name: 'Little Fox', emoji: '🦊', position: 'right', voice: { pitch: 1.4, rate: 1.0 } }
+      teacher: { name: 'Chef Bear', emoji: '🐻', position: 'left', voice: { pitch: 1.0, rate: 0.95 } },
+      student: { name: 'Little Fox', emoji: '🦊', position: 'right', voice: { pitch: 1.1, rate: 1.0 } }
     },
     dialogue: [
       { character: 'student', text: "Chef! My ice cream is melting in the sun!", emotion: 'confused' },
@@ -336,10 +336,10 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
       </motion.div>
 
       {/* Story Stage - More space for bubbles */}
-      <div className="flex-1 flex items-center justify-center relative min-h-0 py-4">
+      <div className="flex-1 flex items-center justify-center relative min-h-[400px] py-8 overflow-visible">
         
         {/* Characters */}
-        <div className="w-full max-w-4xl h-full flex items-end justify-between px-4 md:px-8 relative">
+        <div className="w-full max-w-4xl h-full flex items-end justify-between px-4 md:px-8 relative pt-32">
           
           {/* Teacher */}
           <motion.div
@@ -357,9 +357,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-blue-200 max-w-[280px] z-50"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-blue-200 max-w-[320px] w-max z-50"
                 >
-                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed">
+                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed break-words">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
@@ -412,9 +412,9 @@ export default function StoryMode({ problemId, soundEnabled }: StoryModeProps) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-purple-200 max-w-[280px] z-50"
+                  className="absolute bottom-full mb-6 bg-white rounded-3xl px-5 py-3 shadow-2xl border-4 border-purple-200 max-w-[320px] w-max z-50"
                 >
-                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed">
+                  <p className="text-xs md:text-sm font-bold text-gray-800 leading-relaxed break-words">
                     {getCurrentText(currentLine)}
                   </p>
                   {/* Speech bubble tail */}
