@@ -1002,66 +1002,81 @@ export default function App() {
                     </div>
                   </motion.div>
 
-                  <div className="flex items-center justify-between">
-                    <h3 className={`text-xl font-black ${currentProblemDef.theme.text} flex items-center gap-2`}>
-                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                      Pedagogy Stats
-                    </h3>
-                    {simPhase === 'finished' && (
-                      <motion.div 
-                        initial={{ scale: 0, rotate: -20 }} 
-                        animate={{ scale: 1, rotate: 0 }} 
-                        className="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-2xl font-black text-sm shadow-lg border-4 border-yellow-500"
-                      >
-                        {activeProblem === 'exam' ? (result?.success ? 'PASSED! 🎓' : 'FAILED! ❌') : 'DONE! ✅'}
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
+                  {simPhase === 'finished' && (
                     <motion.div 
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-white/50 rounded-[2rem] p-6 border-4 border-zinc-100 flex items-center justify-between"
+                      initial={{ scale: 0, rotate: -20, y: -20 }} 
+                      animate={{ scale: 1, rotate: 0, y: 0 }} 
+                      className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-8 py-6 rounded-3xl font-black text-xl shadow-2xl border-4 border-yellow-500 text-center mb-6"
                     >
-                      <div className="space-y-1">
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
-                          {activeProblem === 'snail' ? 'Days Passed' : 
-                           activeProblem === 'exam' ? 'Hours Passed' : 
-                           activeProblem === 'icecream' ? 'Minutes Passed' : 'Steps'}
-                        </span>
-                        <div className={`text-5xl font-black ${currentProblemDef.theme.text}`}>{simStep}</div>
+                      <div className="flex items-center justify-center gap-3 mb-2">
+                        <Sparkles className="w-8 h-8" />
+                        <span>Concept Mastered!</span>
+                        <Sparkles className="w-8 h-8" />
                       </div>
-                      <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-zinc-400">
-                        <Timer className={`w-10 h-10 ${isSimulating ? 'animate-pulse' : ''}`} />
+                      <div className="text-sm font-bold opacity-90">
+                        {activeProblem === 'exam' ? (result?.success ? '🎓 Ready for the exam!' : '💪 Keep practicing!') : '✨ You got it!'}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Progress Cards */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-6 shadow-xl relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8" />
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-3">
+                          <Timer className="w-8 h-8 text-white/80" />
+                          {isSimulating && (
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                              className="w-3 h-3 bg-green-400 rounded-full"
+                            />
+                          )}
+                        </div>
+                        <div className="text-5xl font-black text-white mb-1">{simStep}</div>
+                        <div className="text-xs font-bold text-white/70 uppercase tracking-wider">
+                          {activeProblem === 'snail' ? 'Days' : 
+                           activeProblem === 'exam' ? 'Hours' : 
+                           activeProblem === 'icecream' ? 'Minutes' : 'Steps'}
+                        </div>
                       </div>
                     </motion.div>
 
                     <motion.div 
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-white/50 rounded-[2rem] p-6 border-4 border-zinc-100 flex items-center justify-between"
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-6 shadow-xl relative overflow-hidden"
                     >
-                      <div className="space-y-1">
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
-                          {activeProblem === 'snail' ? 'Current Height' : 
-                           activeProblem === 'exam' ? 'Pages Collected' : 
-                           activeProblem === 'icecream' ? 'Ice Cream Left' : 'Value'}
-                        </span>
-                        <div className={`text-5xl font-black ${currentProblemDef.theme.text}`}>
-                          {activeProblem === 'snail' ? Math.max(0, Number(inputs.n) - currentVal).toFixed(0) : 
-                           activeProblem === 'mindist' || activeProblem === 'maxmin' || activeProblem === 'goodsub' || activeProblem === 'graph' || activeProblem === 'atleast' ? '???' :
-                           currentVal.toFixed(0)}
-                          {currentProblemDef.inputs[0].unit}
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8" />
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-3">
+                          {activeProblem === 'snail' ? <ArrowUp className="w-8 h-8 text-white/80" /> : 
+                           activeProblem === 'exam' ? <BookOpen className="w-8 h-8 text-white/80" /> : 
+                           activeProblem === 'icecream' ? <IceCream className="w-8 h-8 text-white/80" /> :
+                           <Zap className="w-8 h-8 text-white/80" />}
+                          {simPhase === 'finished' && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1, rotate: 360 }}
+                              className="text-2xl"
+                            >
+                              ✅
+                            </motion.div>
+                          )}
                         </div>
-                      </div>
-                      <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-zinc-400">
-                        {activeProblem === 'snail' ? <ArrowUp className="w-10 h-10" /> : 
-                         activeProblem === 'exam' ? <BookOpen className="w-10 h-10" /> : 
-                         activeProblem === 'icecream' ? <IceCream className="w-10 h-10" /> :
-                         activeProblem === 'mindist' ? <Layers className="w-10 h-10" /> :
-                         activeProblem === 'maxmin' ? <Activity className="w-10 h-10" /> :
-                         activeProblem === 'goodsub' ? <Zap className="w-10 h-10" /> :
-                         activeProblem === 'graph' ? <Share2 className="w-10 h-10" /> :
-                         <Search className="w-10 h-10" />}
+                        <div className="text-5xl font-black text-white mb-1">
+                          {activeProblem === 'snail' ? Math.max(0, Number(inputs.n) - currentVal).toFixed(0) : 
+                           activeProblem === 'mindist' || activeProblem === 'maxmin' || activeProblem === 'goodsub' || activeProblem === 'graph' || activeProblem === 'atleast' ? '?' :
+                           currentVal.toFixed(0)}
+                        </div>
+                        <div className="text-xs font-bold text-white/70 uppercase tracking-wider">
+                          {activeProblem === 'snail' ? 'Height' : 
+                           activeProblem === 'exam' ? 'Pages' : 
+                           activeProblem === 'icecream' ? 'Grams' : 'Value'}
+                        </div>
                       </div>
                     </motion.div>
                   </div>
@@ -1071,9 +1086,9 @@ export default function App() {
                     simPhase === 'finished' ? 'bg-yellow-100 border-yellow-200' : 'bg-zinc-50 border-zinc-100'
                   }`}>
                     <p className={`text-lg font-black ${currentProblemDef.theme.text} text-center`}>
-                      {simPhase === 'idle' ? "Ready to start?" : 
-                       simPhase === 'active' ? "Watch it happen! 🚀" : 
-                       "Simulation complete! 🎉"}
+                      {simPhase === 'idle' ? "🎮 Ready to Play?" : 
+                       simPhase === 'active' ? "🚀 Watch it happen!" : 
+                       "🎉 Level Complete!"}
                     </p>
                   </div>
                 </div>
@@ -1091,7 +1106,7 @@ export default function App() {
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isSimulating ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                    {isSimulating ? 'Stop' : 'Start Game!'}
+                    {isSimulating ? '⏸️ Pause' : '▶️ Play!'}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -1111,105 +1126,132 @@ export default function App() {
           {/* Right Column: Settings & Big Result */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             
-            {/* Big Result Card */}
+            {/* Result Card - Gamified */}
             <AnimatePresence mode="wait">
               {result && (
                 <motion.div
                   key={JSON.stringify(result) + activeProblem}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-yellow-400 rounded-[3rem] p-10 border-8 border-yellow-500 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-center text-center"
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="bg-gradient-to-br from-yellow-400 via-orange-400 to-yellow-500 rounded-[3rem] p-10 border-8 border-yellow-500 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-center text-center"
                 >
+                  {/* Animated background elements */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 opacity-10"
+                  >
+                    <Sparkles className="absolute top-10 right-10 w-24 h-24" />
+                    <Star className="absolute bottom-10 left-10 w-32 h-32" />
+                    <Trophy className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40" />
+                  </motion.div>
+
                   {'error' in result ? (
-                    <div className="text-yellow-900">
-                      <AlertCircle className="w-16 h-16 mx-auto mb-6" />
-                      <h3 className="text-2xl font-black mb-4">Oh No!</h3>
-                      <p className="font-bold leading-relaxed">{result.error}</p>
+                    <div className="text-yellow-900 relative z-10">
+                      <motion.div
+                        animate={{ rotate: [0, -10, 10, -10, 0] }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <AlertCircle className="w-20 h-20 mx-auto mb-6" />
+                      </motion.div>
+                      <h3 className="text-3xl font-black mb-4">Oops!</h3>
+                      <p className="font-bold leading-relaxed text-lg">{result.error}</p>
                     </div>
                   ) : (
-                    <div className="relative z-10 space-y-8">
-                      <div>
-                        <span className="text-sm font-black uppercase tracking-[0.2em] text-yellow-900/60 block mb-2">
-                          {activeProblem === 'snail' ? 'Days to Win' : 
-                           activeProblem === 'exam' ? 'Exam Ready?' : 
-                           activeProblem === 'icecream' ? 'Ice Cream Left' :
-                           activeProblem === 'mindist' ? 'Ops Needed' :
-                           activeProblem === 'maxmin' ? 'Max Difference' :
-                           activeProblem === 'goodsub' ? 'Good Arrays' :
-                           activeProblem === 'graph' ? 'Total Edges' :
-                           'Target Found?'}
-                        </span>
-                        <div className="text-6xl font-black leading-none text-yellow-900 drop-shadow-lg">
+                    <div className="relative z-10 space-y-6">
+                      {/* Main Result */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.5 }}
+                      >
+                        <div className="text-7xl mb-4">
+                          {activeProblem === 'exam' && result.success ? '🎓' :
+                           activeProblem === 'exam' && !result.success ? '💪' :
+                           activeProblem === 'snail' ? '🐌' :
+                           activeProblem === 'icecream' ? '🍦' : '⭐'}
+                        </div>
+                        <div className="text-6xl font-black leading-none text-white drop-shadow-2xl mb-2">
                           {activeProblem === 'snail' ? result.operations : 
-                           activeProblem === 'exam' ? (result.success ? 'YES! ✅' : 'NO! ❌') : 
+                           activeProblem === 'exam' ? (result.success ? 'READY!' : 'TRY AGAIN') : 
                            activeProblem === 'icecream' ? `${result.left}g` :
                            activeProblem === 'mindist' ? result.ops :
                            activeProblem === 'maxmin' ? result.diff :
                            activeProblem === 'goodsub' ? result.count :
                            activeProblem === 'graph' ? result.edges :
-                           (result.found ? 'FOUND! 🎯' : 'MISS! 💨')}
+                           (result.found ? 'FOUND!' : 'KEEP LOOKING')}
                         </div>
-                      </div>
+                        <span className="text-sm font-black uppercase tracking-[0.3em] text-white/80">
+                          {activeProblem === 'snail' ? 'Days to Escape' : 
+                           activeProblem === 'exam' ? 'Exam Status' : 
+                           activeProblem === 'icecream' ? 'Remaining' :
+                           activeProblem === 'mindist' ? 'Swaps Needed' :
+                           activeProblem === 'maxmin' ? 'Range' :
+                           activeProblem === 'goodsub' ? 'Good Subarrays' :
+                           activeProblem === 'graph' ? 'Connections' :
+                           'Search Result'}
+                        </span>
+                      </motion.div>
                       
-                      <div className="flex justify-center gap-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`w-8 h-8 ${simPhase === 'finished' ? 'text-yellow-900 fill-yellow-900' : 'text-yellow-900/20'}`} />
-                        ))}
-                      </div>
+                      {/* Star Rating */}
+                      {simPhase === 'finished' && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="flex justify-center gap-2"
+                        >
+                          {[...Array(5)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.5 + i * 0.1, type: "spring" }}
+                            >
+                              <Star className="w-10 h-10 text-white fill-white drop-shadow-lg" />
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      )}
 
-                      <div className="bg-white/30 rounded-[2rem] p-6 border-4 border-white/20">
-                        <div className="text-lg font-black text-yellow-900">
+                      {/* Quick Explanation */}
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 border-4 border-white/30"
+                      >
+                        <div className="text-base font-bold text-white leading-relaxed">
                           {activeProblem === 'snail' ? (
-                            <>
-                              <div className="mb-2">Snail escapes in {result.operations} days!</div>
-                              <div className="text-xs opacity-60 font-bold uppercase tracking-widest pt-2 border-t border-yellow-900/10">
-                                Formula: {currentProblemDef.formula}
-                              </div>
-                              <div className="text-sm mt-4 italic">
-                                Why? Because it climbs {inputs.a}m but slides {inputs.b}m, making {Number(inputs.a) - Number(inputs.b)}m net progress each day.
-                              </div>
-                            </>
+                            `Climbs ${inputs.a}m, slides ${inputs.b}m = ${Number(inputs.a) - Number(inputs.b)}m progress per day!`
                           ) : 
                            activeProblem === 'exam' ? (
-                             <>
-                               {result.success ? 'YES! ✅ Chef is ready!' : 'NO! ❌ Chef needs more time!'}
-                               <div className="text-sm opacity-60 mt-2">
-                                 {inputs.a} pages × {inputs.n} hours = {Number(inputs.a) * Number(inputs.n)} total pages.
-                                 <br />
-                                 Goal was {inputs.m} pages.
-                               </div>
-                               <div className="text-xs opacity-60 font-bold uppercase tracking-widest mt-4 pt-2 border-t border-yellow-900/10">
-                                 Formula: {currentProblemDef.formula}
-                               </div>
-                               <div className="text-sm mt-4 italic">
-                                 Why? {result.success ? `Because ${Number(inputs.a) * Number(inputs.n)} is more than ${inputs.m}!` : `Because ${Number(inputs.a) * Number(inputs.n)} is less than ${inputs.m}!`}
-                               </div>
-                             </>
+                             result.success ? 
+                             `${inputs.a} × ${inputs.n} = ${Number(inputs.a) * Number(inputs.n)} pages. You're ready! 🎉` :
+                             `${inputs.a} × ${inputs.n} = ${Number(inputs.a) * Number(inputs.n)} pages. Need ${inputs.m}!`
                            ) : 
                            activeProblem === 'icecream' ? (
-                             <>
-                               <div>Chef has {result.left}g left!</div>
-                               <div className="text-xs opacity-60 font-bold uppercase tracking-widest mt-4 pt-2 border-t border-yellow-900/10">
-                                 Formula: {currentProblemDef.formula}
-                               </div>
-                               <div className="text-sm mt-4 italic">
-                                 Why? We started with {inputs.x}g and subtracted {inputs.y}g for each of the {inputs.n} minutes.
-                               </div>
-                             </>
+                             `Started with ${inputs.x}g, melted ${inputs.y}g × ${inputs.n} minutes!`
                            ) :
-                           activeProblem === 'mindist' ? result.ops :
-                           activeProblem === 'maxmin' ? result.diff :
-                           activeProblem === 'goodsub' ? result.count :
-                           activeProblem === 'graph' ? result.edges :
-                           (result.found ? 'FOUND! 🎯' : 'MISS! 💨')}
+                           'Great job! 🎉'}
                         </div>
-                      </div>
+                      </motion.div>
+
+                      {/* Next Level Unlock */}
+                      {simPhase === 'finished' && currentProblemDef.level < PROBLEMS.length && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 1.2 }}
+                          className="bg-green-500 text-white px-6 py-4 rounded-2xl font-black text-lg shadow-xl border-4 border-green-600"
+                        >
+                          <Unlock className="w-6 h-6 inline-block mr-2" />
+                          Next Level Unlocked!
+                        </motion.div>
+                      )}
                     </div>
                   )}
-                  
-                  {/* Decorative Stars */}
-                  <Sparkles className="absolute top-10 right-10 w-12 h-12 text-white/20" />
-                  <Sparkles className="absolute bottom-10 left-10 w-16 h-16 text-white/20" />
                 </motion.div>
               )}
             </AnimatePresence>
